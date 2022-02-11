@@ -42,7 +42,8 @@ bot = telebot.TeleBot(constants.TOKEN_BOT_API)
 
 @bot.message_handler(commands=["start"])
 def start(m, res=False):
-    bot.send_message(m.chat.id, "Привет, я сын питона. Напиши мне любой город и я скину тебе погоду сейчас.")
+    a = telebot.types.ReplyKeyboardRemove()
+    bot.send_message(m.chat.id, "Привет, я сын питона. Напиши мне любой город и я скину тебе погоду сейчас.", reply_markup=a)
 
 
 weater_info = []
@@ -74,17 +75,25 @@ def handle_text(message):
 
 
 def handle_text2(message):
-    if message.text == 'погода в течении 2 часов':
-        answer = weater_info[0]["after2h"]
-    elif message.text == 'погода в течении 4 часов':
-        answer = weater_info[0]["after4h"]
-    elif message.text == 'погода в течении 6 часов':
-        answer = weater_info[0]["after6h"]
-    elif message.text == 'погода в течении 8 часов':
-        answer = weater_info[0]["after8h"]
-    elif message.text == 'погода в течении 10 часов':
-        answer = weater_info[0]["after10h"]
-    bot.send_message(message.chat.id, f'{emoji.weater_emodji[answer["icon"]]} Будет {answer["sky"].lower()}, {answer["temp"]} {answer["unit"]}. Введите другой населенный пункт')
+    try:
+        if message.text == 'погода в течении 2 часов':
+            answer = weater_info[0]["after2h"]
+        elif message.text == 'погода в течении 4 часов':
+            answer = weater_info[0]["after4h"]
+        elif message.text == 'погода в течении 6 часов':
+            answer = weater_info[0]["after6h"]
+        elif message.text == 'погода в течении 8 часов':
+            answer = weater_info[0]["after8h"]
+        elif message.text == 'погода в течении 10 часов':
+            answer = weater_info[0]["after10h"]
+
+        bot.send_message(message.chat.id, f'{emoji.weater_emodji[answer["icon"]]} Будет {answer["sky"].lower()}, {answer["temp"]} {answer["unit"]}. Введите другой населенный пункт')
+    except UnboundLocalError as error:
+        print(error)
+        markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+        reboot = types.KeyboardButton("/start")
+        markup.add(reboot)
+        bot.send_message(message.chat.id, 'Неизвестная инструкция', reply_markup=markup)
 
 
 bot.polling(none_stop=True, interval=0)
