@@ -1,10 +1,7 @@
-from lib2to3.pgen2 import token
-from re import I
 import telebot
 import json
 import requests
 from geopy import geocoders
-from os import environ
 import constants
 
 
@@ -20,7 +17,7 @@ def code_location(coordinates_array, api_token: str):
   json_data = json.loads(res_loc.text)
   code = json_data['Key']
   return code
-  
+
 def weather(cod_loc: str, token_accu: str):
   url_weather = f'http://dataservice.accuweather.com/forecasts/v1/hourly/12hour/{cod_loc}?apikey={token_accu}&language=ru&metric=True'
   response = requests.get(url_weather, headers={"APIKey": token_accu})
@@ -33,10 +30,6 @@ def weather(cod_loc: str, token_accu: str):
     dict_weather[time] = {'temp': json_data[i]['Temperature']['Value'], 'sky': json_data[i]['IconPhrase']}
   return dict_weather
 
-# geo = geo_pos('Запорожье')
-# code = code_location(geo, constants.TOKEN_WEATER_API)
-# print(weather(code, constants.TOKEN_WEATER_API))
-
 bot = telebot.TeleBot(constants.TOKEN_BOT_API)
 
 @bot.message_handler(commands=["start"])
@@ -45,16 +38,21 @@ def start(m, res=False):
 
 @bot.message_handler(content_types=["text"])
 def handle_text(message):
-    
-    print(message.chat.id)
-    print(f'user: {message.text}')
-    geo = geo_pos(message.text)
-    code = code_location(geo, constants.TOKEN_WEATER_API)
-    res = weather(code, constants.TOKEN_WEATER_API)
-    print(res)
-    bot.send_message(message.chat.id, f'сейчас +{res["now"]["temp"]} по цельсию, {res["now"]["sky"]}')
-    print(f'сейчас {res["now"]["temp"]}, {res["now"]["sky"]}')
-    
+    try:
+        print(message.chat.id)
+        print(f'user: {message.text}')
+        geo = geo_pos(message.text)
+        code = code_location(geo, constants.TOKEN_WEATER_API)
+        res = weather(code, constants.TOKEN_WEATER_API)
+        print(res)
+        temp = res["now"]["temp"]
+        sky = res["now"]["sky"]
+        bot.send_message(message.chat.id, f'сейчас {temp} по цельсию, {sky}')
+        print(f'сейчас {temp}, {sky}')
+    except AttributeError as error:
+        print(error)
+        bot.send_message(message.chat.id, 'Населенный пункт не найден')
+
 
 bot.polling(none_stop=True, interval=0)
 
